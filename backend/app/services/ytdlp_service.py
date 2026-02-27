@@ -5,15 +5,16 @@ from typing import Optional
 
 import yt_dlp
 
+from app.config import settings
 from app.services.task_manager import TaskManager
 
 FORMAT_MAP = {
-    "best": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-    "bestaudio": "bestaudio[ext=m4a]/bestaudio",
-    "720p": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",
-    "1080p": "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]",
-    "1440p": "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440]",
-    "2160p": "bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160]",
+    "best": "bv*+ba/b",
+    "bestaudio": "ba/b",
+    "720p": "bv*[height<=720]+ba/b[height<=720]",
+    "1080p": "bv*[height<=1080]+ba/b[height<=1080]",
+    "1440p": "bv*[height<=1440]+ba/b[height<=1440]",
+    "2160p": "bv*[height<=2160]+ba/b[height<=2160]",
 }
 
 
@@ -67,7 +68,12 @@ class YtDlpService:
                     "merge_output_format": "mp4",
                     "quiet": True,
                     "no_warnings": True,
+                    "js_runtimes": {"node": {}},
                 }
+
+                # Use cookies file if configured
+                if settings.cookies_file and os.path.isfile(settings.cookies_file):
+                    opts["cookiefile"] = settings.cookies_file
 
                 loop = asyncio.get_event_loop()
                 result = await asyncio.wait_for(

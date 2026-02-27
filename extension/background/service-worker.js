@@ -293,19 +293,10 @@ async function pollSingleTask(taskId) {
     console.log('Grabbit SW: backend task completed, downloading file:', downloadPath);
 
     try {
-      // Download with API key header via fetch-blob approach
-      const fileResp = await fetch(fileUrl, {
-        headers: { 'X-API-Key': info.apiKey },
-      });
-      if (!fileResp.ok) throw new Error(`File fetch failed: ${fileResp.status}`);
-      const blob = await fileResp.blob();
-      const blobUrl = URL.createObjectURL(blob);
-
-      try {
-        await chromeDownload(blobUrl, downloadPath);
-      } finally {
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-      }
+      // Download via direct URL with API key as query param
+      // (MV3 service workers don't support URL.createObjectURL)
+      const directUrl = `${fileUrl}?key=${encodeURIComponent(info.apiKey)}`;
+      await chromeDownload(directUrl, downloadPath);
 
       if (info.queueId) {
         await handleQueueUpdate({ id: info.queueId, status: 'done', filename, progress: 100 });

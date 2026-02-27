@@ -8,6 +8,13 @@
     observer = observeNewElements('article', (article) => {
       injectDownloadButton(article);
     });
+
+    // If on a profile page, inject the "Grabbit All" button
+    if (isProfilePage(location.href)) {
+      waitForElement('header section', document, 10000)
+        .then(() => injectProfileButton())
+        .catch(() => console.warn('Grabbit: profile header not found'));
+    }
   }
 
   function cleanup() {
@@ -18,6 +25,8 @@
     // Remove all injected buttons
     document.querySelectorAll(`[${GRABBIT.ATTR}]`).forEach(el => el.remove());
     document.querySelectorAll('.grabbit-toast').forEach(el => el.remove());
+    // Clean up profile batch UI
+    cleanupProfileUI();
   }
 
   function reinit() {

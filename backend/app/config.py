@@ -11,6 +11,7 @@ class Settings(BaseSettings):
         "instagram.com", "www.instagram.com",
         "youtube.com", "www.youtube.com", "youtu.be",
     ]
+    cookies_file: str = ""
 
     model_config = {"env_prefix": "GRABBIT_", "env_file": ".env"}
 

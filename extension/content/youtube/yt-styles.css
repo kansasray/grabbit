@@ -1,0 +1,100 @@
+/* Grabbit YouTube download button styles */
+
+/* Watch page button — pill style matching YT actions */
+.grabbit-yt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1));
+  color: var(--yt-spec-text-primary, #f1f1f1);
+  border: none;
+  border-radius: 18px;
+  padding: 0 16px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Roboto', 'Arial', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  margin-left: 8px;
+}
+
+.grabbit-yt-btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.grabbit-yt-btn:hover {
+  background: var(--yt-spec-10-percent-layer, rgba(255, 255, 255, 0.2));
+}
+
+.grabbit-yt-btn:active {
+  transform: scale(0.95);
+}
+
+/* Shorts button — circle style matching side action buttons */
+.grabbit-yt-shorts-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  margin-top: 16px;
+}
+
+.grabbit-yt-shorts-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.grabbit-yt-shorts-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.grabbit-yt-shorts-btn:active {
+  transform: scale(0.9);
+}
+
+/* Loading state */
+.grabbit-yt-btn.grabbit-loading,
+.grabbit-yt-shorts-btn.grabbit-loading {
+  opacity: 0.5;
+  pointer-events: none;
+  animation: grabbit-yt-pulse 1s ease-in-out infinite;
+}
+
+/* Done state */
+.grabbit-yt-btn.grabbit-done,
+.grabbit-yt-shorts-btn.grabbit-done {
+  color: #2ecc71;
+}
+
+/* Error state */
+.grabbit-yt-btn.grabbit-error,
+.grabbit-yt-shorts-btn.grabbit-error {
+  color: #e74c3c;
+}
+
+@keyframes grabbit-yt-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Light mode override (rare but possible on YT) */
+html[dark="false"] .grabbit-yt-btn,
+ytd-app:not([darker-dark-theme]):not([dark]) .grabbit-yt-btn {
+  background: var(--yt-spec-badge-chip-background, rgba(0, 0, 0, 0.05));
+  color: var(--yt-spec-text-primary, #0f0f0f);
+}
+
+html[dark="false"] .grabbit-yt-btn:hover,
+ytd-app:not([darker-dark-theme]):not([dark]) .grabbit-yt-btn:hover {
+  background: var(--yt-spec-10-percent-layer, rgba(0, 0, 0, 0.1));
+}

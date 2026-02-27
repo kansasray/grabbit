@@ -149,7 +149,7 @@ async function handlePostDownload(article, btn) {
           pageUrl: postUrl,
           format: 'best',
           filenameHint: filename,
-          subfolder: GRABBIT.DOWNLOAD_SUBFOLDER_IG,
+          subfolder: `${GRABBIT.DOWNLOAD_SUBFOLDER_IG}/${username}`,
           queueId,
         });
 
@@ -171,7 +171,7 @@ async function handlePostDownload(article, btn) {
           action: 'download',
           url: item.url,
           filename,
-          subfolder: GRABBIT.DOWNLOAD_SUBFOLDER_IG,
+          subfolder: `${GRABBIT.DOWNLOAD_SUBFOLDER_IG}/${username}`,
         });
 
         if (resp && !resp.success) {
