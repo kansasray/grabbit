@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "Grabbit",
+  "version": "0.1.0",
+  "description": "Download Instagram photos/videos and YouTube videos",
+  "permissions": [
+    "activeTab",
+    "alarms",
+    "downloads",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.instagram.com/*",
+    "https://www.youtube.com/*",
+    "https://*.cdninstagram.com/*",
+    "https://*.fbcdn.net/*",
+    "https://*.instagram.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": [
+        "lib/constants.js",
+        "content/shared/dom-utils.js",
+        "content/shared/filename-utils.js",
+        "content/shared/download-manager.js",
+        "content/instagram/ig-media-extractor.js",
+        "content/instagram/ig-carousel.js",
+        "content/instagram/ig-post-injector.js",
+        "content/instagram/ig-content.js"
+      ],
+      "css": ["content/instagram/ig-styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

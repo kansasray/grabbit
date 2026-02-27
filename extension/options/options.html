@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Grabbit Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="grabbit-options">
+    <h1>Grabbit Settings</h1>
+
+    <form id="options-form">
+      <fieldset>
+        <legend>Backend API (YouTube downloads)</legend>
+        <label>
+          <span>API Base URL</span>
+          <input type="url" id="apiBaseUrl" placeholder="https://grabbit.yourdomain.com">
+        </label>
+        <label>
+          <span>API Key</span>
+          <input type="password" id="apiKey" placeholder="Your API key">
+        </label>
+        <button type="button" id="testConnection">Test Connection</button>
+        <span id="testResult"></span>
+      </fieldset>
+
+      <fieldset>
+        <legend>Instagram</legend>
+        <label>
+          <span>Max profile batch download</span>
+          <input type="number" id="maxBatchSize" value="100" min="1" max="1000">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>YouTube</legend>
+        <label>
+          <span>Default quality</span>
+          <select id="ytDefaultQuality">
+            <option value="best">Best available</option>
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
+            <option value="1440p">1440p</option>
+            <option value="2160p">4K</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit" id="save-btn">Save</button>
+        <span id="save-status"></span>
+      </div>
+    </form>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
