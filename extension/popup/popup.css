@@ -25,6 +25,71 @@
   color: #8e8e8e;
 }
 
+/* URL form */
+#url-form {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #efefef;
+}
+
+#url-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#url-input:focus {
+  border-color: #0095f6;
+}
+
+.form-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#format-select {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.primary-btn {
+  padding: 6px 16px;
+  background: #0095f6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.primary-btn:hover {
+  background: #0081d6;
+}
+
+.primary-btn:disabled {
+  background: #b2dffc;
+  cursor: default;
+}
+
+.form-error {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #e74c3c;
+}
+
 /* Queue */
 #queue-container {
   max-height: 300px;
@@ -80,6 +145,8 @@
 .queue-done .queue-source { background: #2ecc71; }
 .queue-error .queue-source { background: #e74c3c; }
 .queue-downloading .queue-source { background: #0095f6; }
+.queue-source.source-fb { background: #1877f2; }
+.queue-source.source-yt { background: #ff0000; }
 
 /* Progress bar */
 .progress-bar {

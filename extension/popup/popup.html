@@ -11,6 +11,20 @@
       <span class="version">v0.1.0</span>
     </header>
 
+    <div id="url-form">
+      <input type="text" id="url-input" placeholder="Paste Facebook / YouTube URL…" spellcheck="false">
+      <div class="form-row">
+        <select id="format-select">
+          <option value="best">Best quality</option>
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
+          <option value="bestaudio">Audio only</option>
+        </select>
+        <button id="dl-btn" class="primary-btn">Download</button>
+      </div>
+      <div id="form-error" class="form-error" style="display:none"></div>
+    </div>
+
     <div id="queue-container">
       <p class="empty-state">No recent downloads</p>
     </div>

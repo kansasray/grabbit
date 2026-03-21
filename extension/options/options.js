@@ -1,6 +1,6 @@
 // Grabbit options page
 
-const FIELDS = ['apiBaseUrl', 'apiKey', 'maxBatchSize', 'ytDefaultQuality'];
+const FIELDS = ['apiBaseUrl', 'apiKey', 'maxBatchSize', 'ytDefaultQuality', 'fbDefaultQuality'];
 
 // Load saved settings
 async function loadSettings() {

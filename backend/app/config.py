@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     allowed_domains: list[str] = [
         "instagram.com", "www.instagram.com",
         "youtube.com", "www.youtube.com", "youtu.be",
+        "facebook.com", "www.facebook.com", "m.facebook.com",
+        "web.facebook.com",
     ]
     cookies_file: str = ""
 

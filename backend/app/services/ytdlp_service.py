@@ -68,7 +68,10 @@ class YtDlpService:
                     "merge_output_format": "mp4",
                     "quiet": True,
                     "no_warnings": True,
-                    "js_runtimes": {"node": {}},
+                    "extractor_args": {
+                        "facebook": {"js_runtimes": ["node"]},
+                        "youtube": {"js_runtimes": ["node"]},
+                    },
                 }
 
                 # Use cookies file if configured

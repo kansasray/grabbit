@@ -11,7 +11,7 @@
 
     // If on a profile page, inject the "Grabbit All" button
     if (isProfilePage(location.href)) {
-      waitForElement('header section', document, 10000)
+      findProfileHeader(document, 10000)
         .then(() => injectProfileButton())
         .catch(() => console.warn('Grabbit: profile header not found'));
     }

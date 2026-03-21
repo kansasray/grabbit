@@ -31,7 +31,8 @@ function renderQueue(items) {
     const icon = STATUS_ICONS[item.status] || '';
     const label = STATUS_LABELS[item.status] || item.status;
     const name = item.filename || item.url?.substring(0, 40) || 'Unknown';
-    const source = item.source === 'yt' ? 'YT' : 'IG';
+    const sourceMap = { yt: 'YT', fb: 'FB', ig: 'IG' };
+    const source = sourceMap[item.source] || 'IG';
 
     let progressBar = '';
     if (item.status === 'downloading' && item.progress != null) {
@@ -48,7 +49,7 @@ function renderQueue(items) {
         <div class="queue-row">
           <span class="queue-icon">${icon}</span>
           <span class="queue-filename" title="${name}">${name}</span>
-          <span class="queue-source">${source}</span>
+          <span class="queue-source source-${item.source || 'ig'}">${source}</span>
         </div>
         ${progressBar}
         ${errorMsg}
@@ -78,6 +79,85 @@ document.getElementById('clear-btn').addEventListener('click', async () => {
   await chrome.storage.session.set({ downloadQueue: queue });
   refreshQueue();
 });
+
+// ─── URL paste download ──────────────────────────────────────
+
+const SUPPORTED_DOMAINS = {
+  fb: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com', 'fb.watch'],
+  yt: ['youtube.com', 'www.youtube.com', 'youtu.be', 'm.youtube.com'],
+};
+
+function detectSource(url) {
+  try {
+    const host = new URL(url).hostname;
+    for (const [src, domains] of Object.entries(SUPPORTED_DOMAINS)) {
+      if (domains.some(d => host === d || host.endsWith('.' + d))) return src;
+    }
+  } catch { /* invalid URL */ }
+  return null;
+}
+
+document.getElementById('dl-btn').addEventListener('click', () => submitUrl());
+document.getElementById('url-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitUrl();
+});
+
+async function submitUrl() {
+  const input = document.getElementById('url-input');
+  const errorEl = document.getElementById('form-error');
+  const dlBtn = document.getElementById('dl-btn');
+  const rawUrl = input.value.trim();
+
+  errorEl.style.display = 'none';
+
+  if (!rawUrl) return;
+
+  const source = detectSource(rawUrl);
+  if (!source) {
+    errorEl.textContent = 'Unsupported URL — paste a Facebook or YouTube link';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const format = document.getElementById('format-select').value;
+  const queueId = `popup-${Date.now()}`;
+  const subfolder = source === 'fb' ? 'fb' : 'yt';
+
+  // Add to queue immediately
+  await chrome.runtime.sendMessage({
+    action: 'queueUpdate',
+    item: { id: queueId, url: rawUrl, status: 'pending', source, progress: 0 },
+  });
+
+  // Disable form while submitting
+  dlBtn.disabled = true;
+  dlBtn.textContent = 'Sending…';
+
+  try {
+    const resp = await chrome.runtime.sendMessage({
+      action: 'downloadViaBackend',
+      pageUrl: rawUrl,
+      format,
+      filenameHint: null,
+      subfolder,
+      queueId,
+    });
+
+    if (resp && !resp.success) {
+      errorEl.textContent = resp.error || 'Download failed';
+      errorEl.style.display = 'block';
+    } else {
+      input.value = '';
+    }
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    dlBtn.disabled = false;
+    dlBtn.textContent = 'Download';
+    refreshQueue();
+  }
+}
 
 // Options link
 document.getElementById('options-link').addEventListener('click', (e) => {

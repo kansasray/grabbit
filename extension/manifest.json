@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Grabbit",
   "version": "0.1.0",
-  "description": "Download Instagram photos/videos and YouTube videos",
+  "description": "Download Instagram, YouTube, and Facebook videos",
   "permissions": [
     "activeTab",
     "alarms",
@@ -12,6 +12,9 @@
   "host_permissions": [
     "https://www.instagram.com/*",
     "https://www.youtube.com/*",
+    "https://www.facebook.com/*",
+    "https://m.facebook.com/*",
+    "https://web.facebook.com/*",
     "https://*.cdninstagram.com/*",
     "https://*.fbcdn.net/*",
     "https://*.instagram.com/*",

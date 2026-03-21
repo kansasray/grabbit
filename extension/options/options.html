@@ -11,7 +11,7 @@
 
     <form id="options-form">
       <fieldset>
-        <legend>Backend API (YouTube downloads)</legend>
+        <legend>Backend API (YouTube / Facebook downloads)</legend>
         <label>
           <span>API Base URL</span>
           <input type="url" id="apiBaseUrl" placeholder="https://grabbit.yourdomain.com">
@@ -42,6 +42,18 @@
             <option value="720p">720p</option>
             <option value="1440p">1440p</option>
             <option value="2160p">4K</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Facebook</legend>
+        <label>
+          <span>Default quality</span>
+          <select id="fbDefaultQuality">
+            <option value="best">Best available</option>
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
           </select>
         </label>
       </fieldset>

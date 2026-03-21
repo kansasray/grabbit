@@ -153,13 +153,87 @@ function parseFeedItem(item) {
   return { shortcode, username, timestamp, media };
 }
 
+// ─── Profile area detection ───────────────────────────────────
+
+const PROFILE_ACTION_LABELS = [
+  'follow', 'following', 'message', 'edit profile', 'share profile',
+  '追蹤', '追蹤中', '發訊息', '編輯個人檔案', '分享個人檔案',
+  '关注', '正在关注', '发消息', '编辑个人资料', '分享个人主页',
+];
+
+/**
+ * Find the profile action row by looking for Follow/Message/Edit buttons.
+ * Searches entire document — does not depend on <header> existing.
+ */
+function findProfileActionRow() {
+  const allButtons = document.querySelectorAll('button');
+  for (const btn of allButtons) {
+    const text = btn.textContent?.trim().toLowerCase();
+    if (PROFILE_ACTION_LABELS.some(l => text === l)) {
+      return btn.parentElement;
+    }
+  }
+  return null;
+}
+
+/**
+ * Find any suitable container in the profile area.
+ * Uses multiple strategies from specific to broad.
+ */
+function findProfileHeaderEl() {
+  // Strategy 1: classic header section
+  const classic = document.querySelector('header section');
+  if (classic) return classic;
+
+  // Strategy 2: find Follow/Message buttons → use their container
+  const actionRow = findProfileActionRow();
+  if (actionRow) {
+    return actionRow.closest('section') || actionRow.closest('header') || actionRow.parentElement;
+  }
+
+  // Strategy 3: profile stats (posts/followers/following links)
+  const statsLink = document.querySelector('a[href*="/followers"], a[href*="/following"]');
+  if (statsLink) {
+    const container = statsLink.closest('section') || statsLink.closest('ul')?.parentElement;
+    if (container) return container;
+  }
+
+  // Strategy 4: broader header fallbacks
+  return document.querySelector('header > div > section')
+    || document.querySelector('header > section')
+    || document.querySelector('main header > div')
+    || document.querySelector('main header')
+    || document.querySelector('header');
+}
+
+/**
+ * Wait until any profile area element is found.
+ */
+function findProfileHeader(parent = document, timeoutMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const existing = findProfileHeaderEl();
+    if (existing) return resolve(existing);
+
+    const observer = new MutationObserver(() => {
+      const el = findProfileHeaderEl();
+      if (el) {
+        observer.disconnect();
+        resolve(el);
+      }
+    });
+    observer.observe(parent, { childList: true, subtree: true });
+
+    setTimeout(() => {
+      observer.disconnect();
+      reject(new Error('Profile header not found'));
+    }, timeoutMs);
+  });
+}
+
 // ─── Button injection ──────────────────────────────────────────
 
 function injectProfileButton() {
   if (document.querySelector('.grabbit-profile-dl-btn')) return;
-
-  const header = document.querySelector('header section');
-  if (!header) return;
 
   const btn = document.createElement('button');
   btn.className = 'grabbit-profile-dl-btn';
@@ -167,23 +241,16 @@ function injectProfileButton() {
   btn.textContent = 'Grabbit All';
   btn.addEventListener('click', handleProfileBatchDownload);
 
-  // Try to find the action row (div containing Follow/Message buttons)
-  const actionBtns = header.querySelectorAll('button');
-  let actionRow = null;
-  for (const ab of actionBtns) {
-    const text = ab.textContent?.trim().toLowerCase();
-    if (text === 'follow' || text === 'following' || text === 'message'
-      || text === '追蹤' || text === '追蹤中' || text === '發訊息'
-      || text === '关注' || text === '正在关注' || text === '发消息') {
-      actionRow = ab.parentElement;
-      break;
-    }
-  }
-
+  // Try to find the action row (Follow/Message buttons)
+  const actionRow = findProfileActionRow();
   if (actionRow) {
     actionRow.appendChild(btn);
-  } else {
-    // Fallback: append to header section
+    return;
+  }
+
+  // Fallback: append to whatever profile area we can find
+  const header = findProfileHeaderEl();
+  if (header) {
     header.appendChild(btn);
   }
 }
