@@ -97,13 +97,17 @@ function detectSource(url) {
   return null;
 }
 
-document.getElementById('dl-btn').addEventListener('click', () => submitUrl());
+document.getElementById('dl-btn').addEventListener('click', () => startDownload());
 document.getElementById('url-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') submitUrl();
+  if (e.key === 'Enter') startDownload();
+});
+document.getElementById('filename-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') startDownload();
 });
 
-async function submitUrl() {
+async function startDownload() {
   const input = document.getElementById('url-input');
+  const filenameField = document.getElementById('filename-input');
   const errorEl = document.getElementById('form-error');
   const dlBtn = document.getElementById('dl-btn');
   const rawUrl = input.value.trim();
@@ -120,16 +124,15 @@ async function submitUrl() {
   }
 
   const format = document.getElementById('format-select').value;
+  const filenameHint = filenameField.value.trim() || null;
   const queueId = `popup-${Date.now()}`;
   const subfolder = source === 'fb' ? 'fb' : 'yt';
 
-  // Add to queue immediately
   await chrome.runtime.sendMessage({
     action: 'queueUpdate',
-    item: { id: queueId, url: rawUrl, status: 'pending', source, progress: 0 },
+    item: { id: queueId, url: rawUrl, filename: filenameHint, status: 'pending', source, progress: 0 },
   });
 
-  // Disable form while submitting
   dlBtn.disabled = true;
   dlBtn.textContent = 'Sending…';
 
@@ -138,7 +141,7 @@ async function submitUrl() {
       action: 'downloadViaBackend',
       pageUrl: rawUrl,
       format,
-      filenameHint: null,
+      filenameHint,
       subfolder,
       queueId,
     });
@@ -148,6 +151,7 @@ async function submitUrl() {
       errorEl.style.display = 'block';
     } else {
       input.value = '';
+      filenameField.value = '';
     }
   } catch (err) {
     errorEl.textContent = err.message;

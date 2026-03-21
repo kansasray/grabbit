@@ -12,6 +12,16 @@ class DownloadFormat(str, Enum):
     p4k = "2160p"
 
 
+class InfoRequest(BaseModel):
+    url: HttpUrl
+
+
+class InfoResponse(BaseModel):
+    title: str
+    duration: Optional[float] = None
+    thumbnail: Optional[str] = None
+
+
 class DownloadRequest(BaseModel):
     url: HttpUrl
     format: DownloadFormat = DownloadFormat.best

@@ -32,7 +32,8 @@
   border-bottom: 1px solid #efefef;
 }
 
-#url-input {
+#url-input,
+#filename-input {
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
@@ -43,7 +44,8 @@
   transition: border-color 0.2s;
 }
 
-#url-input:focus {
+#url-input:focus,
+#filename-input:focus {
   border-color: #0095f6;
 }
 

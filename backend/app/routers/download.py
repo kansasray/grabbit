@@ -4,7 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from app.auth import verify_api_key
 from app.config import settings
-from app.models.schemas import DownloadRequest, DownloadResponse, TaskStatus
+from app.models.schemas import DownloadRequest, DownloadResponse, InfoRequest, InfoResponse, TaskStatus
 from app.services.task_manager import TaskManager
 from app.services.ytdlp_service import YtDlpService
 
@@ -44,6 +44,27 @@ async def create_download(
     )
 
     return DownloadResponse(task_id=task.id, status="queued")
+
+
+@router.post("/info", response_model=InfoResponse)
+async def get_info(
+    req: InfoRequest,
+    _: str = Depends(verify_api_key),
+):
+    parsed = urlparse(str(req.url))
+    hostname = parsed.hostname or ""
+    if not any(hostname.endswith(d) for d in settings.allowed_domains):
+        raise HTTPException(status_code=400, detail=f"Domain not allowed: {hostname}")
+
+    try:
+        result = await _ytdlp_service.extract_info(str(req.url))
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Could not extract video info")
+
+    return InfoResponse(**result)
 
 
 @router.get("/status/{task_id}", response_model=TaskStatus)

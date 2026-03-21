@@ -113,3 +113,73 @@ class YtDlpService:
             if info:
                 return ydl.prepare_filename(info)
         return None
+
+    async def extract_info(self, url: str) -> Optional[dict]:
+        opts = {
+            "quiet": True,
+            "no_warnings": True,
+            "extractor_args": {
+                "facebook": {"js_runtimes": ["node"]},
+                "youtube": {"js_runtimes": ["node"]},
+            },
+        }
+        if settings.cookies_file and os.path.isfile(settings.cookies_file):
+            opts["cookiefile"] = settings.cookies_file
+
+        loop = asyncio.get_event_loop()
+        return await asyncio.wait_for(
+            loop.run_in_executor(None, self._do_extract_info, opts, url),
+            timeout=30,
+        )
+
+    GENERIC_TITLES = {"影片", "video", "reel", "reels", "watch", "短片", "视频"}
+
+    # Suffixes to strip from titles (order matters — longest first)
+    TITLE_STRIP_SUFFIXES = [
+        " - 現場錄影",
+        "- 現場錄影",
+        " - 錄影",
+        " - 直播",
+    ]
+
+    @classmethod
+    def clean_title(cls, raw_title: str, uploader: str = "") -> str:
+        title = raw_title.strip()
+
+        # If title contains "|", take the part after the last "|"
+        # e.g. "「系列名」（會員限定）日期 | 《課程名》描述 - 現場錄影"
+        #   → "《課程名》描述 - 現場錄影"
+        if "|" in title:
+            title = title.rsplit("|", 1)[-1].strip()
+
+        # Strip known suffixes
+        for suffix in cls.TITLE_STRIP_SUFFIXES:
+            if title.endswith(suffix):
+                title = title[: -len(suffix)].strip()
+                break
+            # Also handle truncated suffixes (e.g. "...現場錄影�...")
+            idx = title.rfind(suffix.lstrip(" -"))
+            if idx > 0:
+                title = title[:idx].strip().rstrip("-").strip()
+                break
+
+        # If still generic after cleaning, prepend uploader
+        if title.lower() in cls.GENERIC_TITLES and uploader:
+            title = f"{uploader} - {title}"
+
+        return title
+
+    def _do_extract_info(self, opts: dict, url: str) -> Optional[dict]:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            if info:
+                raw_title = info.get("title") or "video"
+                uploader = (info.get("uploader") or "").strip()
+                title = self.clean_title(raw_title, uploader)
+
+                return {
+                    "title": title,
+                    "duration": info.get("duration"),
+                    "thumbnail": info.get("thumbnail"),
+                }
+        return None
