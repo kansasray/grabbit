@@ -56,7 +56,7 @@ class YtDlpService:
             try:
                 self.task_manager.update_task(task_id, status="downloading")
 
-                outtmpl = str(self.download_dir / "%(title)s.%(ext)s")
+                outtmpl = str(self.download_dir / "%(title)s [%(id)s].%(ext)s")
                 if filename_hint:
                     base = Path(filename_hint).stem
                     outtmpl = str(self.download_dir / f"{base}.%(ext)s")
