@@ -44,6 +44,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     return true;
   }
+
+  if (message.action === 'recordDownload') {
+    recordDownloadHistory(message.mediaKeys)
+      .then(() => sendResponse({ success: true }))
+      .catch(() => sendResponse({ success: false }));
+    return true;
+  }
 });
 
 // ─── chrome.alarms for MV3 service worker lifecycle ────────────
@@ -318,4 +325,34 @@ async function pollSingleTask(taskId) {
     }
   }
   // Otherwise still in progress — will poll again on next alarm
+}
+
+// ─── Download history (deduplication) ─────────────────────────
+
+const HISTORY_KEY = 'downloadHistory';
+const HISTORY_MAX_ENTRIES = 50000;
+
+async function recordDownloadHistory(mediaKeys) {
+  const keys = Array.isArray(mediaKeys) ? mediaKeys : [mediaKeys];
+  const valid = keys.filter(Boolean);
+  if (valid.length === 0) return;
+
+  const data = await chrome.storage.local.get(HISTORY_KEY);
+  const history = data[HISTORY_KEY] || {};
+  const now = Date.now();
+
+  for (const key of valid) {
+    history[key] = now;
+  }
+
+  const entries = Object.entries(history);
+  if (entries.length > HISTORY_MAX_ENTRIES) {
+    entries.sort((a, b) => a[1] - b[1]);
+    const toRemove = entries.length - HISTORY_MAX_ENTRIES;
+    for (let i = 0; i < toRemove; i++) {
+      delete history[entries[i][0]];
+    }
+  }
+
+  await chrome.storage.local.set({ [HISTORY_KEY]: history });
 }

@@ -58,7 +58,7 @@ function createDownloadButton(carouselCount) {
   return btn;
 }
 
-function injectDownloadButton(article) {
+async function injectDownloadButton(article) {
   try {
     if (article.querySelector(`[${GRABBIT.ATTR}]`)) return;
 
@@ -68,6 +68,17 @@ function injectDownloadButton(article) {
     const carousel = isCarousel(article);
     const count = carousel ? getCarouselCount(article) : 0;
     const btn = createDownloadButton(count);
+
+    // Check if already downloaded
+    const shortcode = extractShortcode(article);
+    if (shortcode) {
+      const mediaKey = buildMediaKey({ source: 'ig', shortcode, index: 0 });
+      const already = await isDownloaded(mediaKey);
+      if (already) {
+        btn.classList.add('grabbit-downloaded');
+        btn.title = 'Already downloaded — click to re-download';
+      }
+    }
 
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -136,6 +147,8 @@ async function handlePostDownload(article, btn) {
       // Check if this is a video with a blob: URL or no direct URL — needs backend
       const needsBackend = item.type === 'video' && (!item.url || item.url.startsWith('blob:'));
 
+      const mediaKey = buildMediaKey({ source: 'ig', shortcode, index: item.index });
+
       if (needsBackend) {
         // Fall back to backend (yt-dlp) for Reels/videos
         const postUrl = `https://www.instagram.com/reel/${shortcode}/`;
@@ -159,6 +172,7 @@ async function handlePostDownload(article, btn) {
           // Don't throw — continue with other items
         } else {
           downloaded++;
+          await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
         }
       } else {
         // Direct download (photos, videos with direct URLs)
@@ -181,12 +195,15 @@ async function handlePostDownload(article, btn) {
 
         await completeQueueItem(queueId, filename);
         downloaded++;
+        await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
       }
 
       if (media.length > 1) await sleep(300);
     }
 
     btn.classList.add('grabbit-done');
+    btn.classList.add('grabbit-downloaded');
+    btn.title = 'Already downloaded — click to re-download';
     showToast(`Downloaded ${downloaded} file${downloaded > 1 ? 's' : ''}`, article);
   } catch (err) {
     console.error('Grabbit download error:', err);

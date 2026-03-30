@@ -31,6 +31,22 @@
   color: #2ecc71;
 }
 
+.grabbit-dl-btn.grabbit-downloaded {
+  color: #2ecc71;
+  position: relative;
+}
+
+.grabbit-dl-btn.grabbit-downloaded::after {
+  content: '\2713';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #2ecc71;
+  line-height: 1;
+}
+
 .grabbit-dl-btn.grabbit-error {
   color: #e74c3c;
 }
@@ -213,6 +229,12 @@
 .grabbit-cancel-btn:hover {
   border-color: #e74c3c;
   color: #e74c3c;
+}
+
+.grabbit-progress-skip {
+  color: #8e8e8e;
+  font-weight: 400;
+  font-size: 13px;
 }
 
 /* Dark mode support */

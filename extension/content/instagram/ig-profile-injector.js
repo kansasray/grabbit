@@ -283,8 +283,10 @@ function showProgressBanner() {
   return banner;
 }
 
-function updateProgress(banner, { phase, scanned, totalPosts, downloaded, totalMedia, error }) {
+function updateProgress(banner, { phase, scanned, totalPosts, downloaded, totalMedia, skipped, error }) {
   if (!banner) return;
+
+  const skippedHtml = skipped ? ` <span class="grabbit-progress-skip">(${skipped} skipped)</span>` : '';
 
   let html = '';
   if (phase === 'scanning') {
@@ -296,14 +298,14 @@ function updateProgress(banner, { phase, scanned, totalPosts, downloaded, totalM
   } else if (phase === 'downloading') {
     const pct = totalMedia > 0 ? Math.round((downloaded / totalMedia) * 100) : 0;
     html = `
-      <div class="grabbit-progress-text">Downloading... ${downloaded}/${totalMedia} files</div>
+      <div class="grabbit-progress-text">Downloading... ${downloaded}/${totalMedia} files${skippedHtml}</div>
       <div class="grabbit-progress-bar"><div class="grabbit-progress-fill" style="width:${pct}%"></div></div>
       <button class="grabbit-cancel-btn">Cancel</button>`;
   } else if (phase === 'done') {
-    html = `<div class="grabbit-progress-text grabbit-progress-done">Done! Downloaded ${downloaded} files.</div>`;
+    html = `<div class="grabbit-progress-text grabbit-progress-done">Done! Downloaded ${downloaded} files.${skippedHtml}</div>`;
     setTimeout(() => banner.remove(), 5000);
   } else if (phase === 'cancelled') {
-    html = `<div class="grabbit-progress-text grabbit-progress-warn">Cancelled. Downloaded ${downloaded || 0} files.</div>`;
+    html = `<div class="grabbit-progress-text grabbit-progress-warn">Cancelled. Downloaded ${downloaded || 0} files.${skippedHtml}</div>`;
     setTimeout(() => banner.remove(), 5000);
   } else if (phase === 'error') {
     html = `<div class="grabbit-progress-text grabbit-progress-error">Error: ${error}</div>`;
@@ -383,18 +385,31 @@ async function handleProfileBatchDownload(e) {
       return;
     }
 
-    // 5. Download all media
+    // 5. Filter out already-downloaded media
+    const mediaKeys = allMedia.map(item =>
+      buildMediaKey({ source: 'ig', shortcode: item.shortcode, index: item.index })
+    );
+    const alreadyDownloaded = await filterDownloaded(mediaKeys);
+    const newMedia = allMedia.filter((item, i) => !alreadyDownloaded.has(mediaKeys[i]));
+    const skipped = allMedia.length - newMedia.length;
+
+    if (newMedia.length === 0) {
+      updateProgress(banner, { phase: 'done', downloaded: 0, skipped });
+      return;
+    }
+
+    // 6. Download new media only
     if (!chrome.runtime?.id) {
       throw new Error('Extension was reloaded — please refresh this page');
     }
 
     let downloaded = 0;
-    const totalMedia = allMedia.length;
-    updateProgress(banner, { phase: 'downloading', downloaded, totalMedia });
+    const totalMedia = newMedia.length;
+    updateProgress(banner, { phase: 'downloading', downloaded, totalMedia, skipped });
 
-    for (const item of allMedia) {
+    for (const item of newMedia) {
       if (signal.aborted) {
-        updateProgress(banner, { phase: 'cancelled', downloaded });
+        updateProgress(banner, { phase: 'cancelled', downloaded, skipped });
         return;
       }
 
@@ -406,6 +421,8 @@ async function handleProfileBatchDownload(e) {
         type: item.type,
       });
 
+      const mediaKey = buildMediaKey({ source: 'ig', shortcode: item.shortcode, index: item.index });
+
       try {
         await chrome.runtime.sendMessage({
           action: 'download',
@@ -414,15 +431,17 @@ async function handleProfileBatchDownload(e) {
           subfolder: `${GRABBIT.DOWNLOAD_SUBFOLDER_IG}/${item.username}`,
         });
         downloaded++;
+        // Record in history
+        await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
       } catch (err) {
         console.warn(`Grabbit: batch download failed for ${item.shortcode}:`, err.message);
       }
 
-      updateProgress(banner, { phase: 'downloading', downloaded, totalMedia });
+      updateProgress(banner, { phase: 'downloading', downloaded, totalMedia, skipped });
       await sleep(300);
     }
 
-    updateProgress(banner, { phase: 'done', downloaded });
+    updateProgress(banner, { phase: 'done', downloaded, skipped });
   } catch (err) {
     if (err.name === 'AbortError') {
       updateProgress(banner, { phase: 'cancelled', downloaded: 0 });

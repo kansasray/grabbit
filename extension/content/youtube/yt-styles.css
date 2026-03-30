@@ -76,6 +76,32 @@
   color: #2ecc71;
 }
 
+/* Already downloaded indicator */
+.grabbit-yt-btn.grabbit-downloaded {
+  color: #2ecc71;
+  position: relative;
+}
+
+.grabbit-yt-btn.grabbit-downloaded .grabbit-yt-btn-label::after {
+  content: ' \2713';
+}
+
+.grabbit-yt-shorts-btn.grabbit-downloaded {
+  color: #2ecc71;
+  position: relative;
+}
+
+.grabbit-yt-shorts-btn.grabbit-downloaded::after {
+  content: '\2713';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #2ecc71;
+  line-height: 1;
+}
+
 /* Error state */
 .grabbit-yt-btn.grabbit-error,
 .grabbit-yt-shorts-btn.grabbit-error {

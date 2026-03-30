@@ -14,12 +14,12 @@
   }
 
   // Watch page: try to inject, with retries via MutationObserver
-  function attemptWatchInject() {
-    if (injectWatchButton()) return; // success on first try
+  async function attemptWatchInject() {
+    if (await injectWatchButton()) return; // success on first try
 
     // Element not ready yet — observe DOM until it appears
-    watchObserver = new MutationObserver(() => {
-      if (injectWatchButton()) {
+    watchObserver = new MutationObserver(async () => {
+      if (await injectWatchButton()) {
         watchObserver.disconnect();
         watchObserver = null;
       }

@@ -31,6 +31,7 @@
         "lib/constants.js",
         "content/shared/dom-utils.js",
         "content/shared/filename-utils.js",
+        "content/shared/download-history.js",
         "content/shared/download-manager.js",
         "content/instagram/ig-media-extractor.js",
         "content/instagram/ig-carousel.js",
@@ -47,6 +48,7 @@
         "lib/constants.js",
         "content/shared/dom-utils.js",
         "content/shared/filename-utils.js",
+        "content/shared/download-history.js",
         "content/shared/download-manager.js",
         "content/youtube/yt-injector.js",
         "content/youtube/yt-content.js"

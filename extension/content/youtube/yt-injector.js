@@ -76,6 +76,7 @@ async function handleYTDownload(btn) {
     }
 
     const videoUrl = getVideoUrl();
+    const videoId = extractYTVideoId(videoUrl);
     const title = getVideoTitle() || 'video';
     const channel = getChannelName() || 'unknown';
 
@@ -110,7 +111,15 @@ async function handleYTDownload(btn) {
       throw new Error(resp.error || 'Backend download failed');
     }
 
+    // Record in download history
+    if (videoId) {
+      const mediaKey = buildMediaKey({ source: 'yt', videoId });
+      await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
+    }
+
     btn.classList.add('grabbit-done');
+    btn.classList.add('grabbit-downloaded');
+    btn.title = 'Already downloaded — click to re-download';
   } catch (err) {
     console.error('Grabbit YT download error:', err);
     btn.classList.add('grabbit-error');
@@ -120,7 +129,9 @@ async function handleYTDownload(btn) {
     btn.disabled = false;
     setTimeout(() => {
       btn.classList.remove('grabbit-done', 'grabbit-error');
-      btn.title = 'Download with Grabbit';
+      if (!btn.classList.contains('grabbit-downloaded')) {
+        btn.title = 'Download with Grabbit';
+      }
     }, 3000);
   }
 }
@@ -148,7 +159,7 @@ const WATCH_ACTION_SELECTORS = [
  * Try to inject the download button on a Watch page.
  * Returns true if injection succeeded, false if target not found yet.
  */
-function injectWatchButton() {
+async function injectWatchButton() {
   if (!isWatchPage()) return true; // not a watch page, nothing to do
   if (document.querySelector('.grabbit-yt-btn')) return true; // already injected
 
@@ -164,6 +175,18 @@ function injectWatchButton() {
   btn.setAttribute(GRABBIT.ATTR, 'yt-watch');
   btn.title = 'Download with Grabbit';
   btn.innerHTML = `${DOWNLOAD_SVG}<span class="grabbit-yt-btn-label">Download</span>`;
+
+  // Check download history
+  const videoId = extractYTVideoId(location.href);
+  if (videoId) {
+    const mediaKey = buildMediaKey({ source: 'yt', videoId });
+    const already = await isDownloaded(mediaKey);
+    if (already) {
+      btn.classList.add('grabbit-downloaded');
+      btn.title = 'Already downloaded — click to re-download';
+    }
+  }
+
   btn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -187,7 +210,7 @@ const SHORTS_ACTION_SELECTORS = [
 /**
  * Inject download button into all visible Shorts renderers that don't have one yet.
  */
-function injectShortsButton() {
+async function injectShortsButton() {
   if (!isShortsPage()) return;
 
   // Find all reel renderers (each Shorts video has one)
@@ -210,6 +233,18 @@ function injectShortsButton() {
     btn.setAttribute(GRABBIT.ATTR, 'yt-shorts');
     btn.title = 'Download with Grabbit';
     btn.innerHTML = DOWNLOAD_SVG;
+
+    // Check download history for this short
+    const videoId = extractYTVideoId(location.href);
+    if (videoId) {
+      const mediaKey = buildMediaKey({ source: 'yt', videoId });
+      const already = await isDownloaded(mediaKey);
+      if (already) {
+        btn.classList.add('grabbit-downloaded');
+        btn.title = 'Already downloaded — click to re-download';
+      }
+    }
+
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
