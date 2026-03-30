@@ -172,7 +172,7 @@ async function handlePostDownload(article, btn) {
           // Don't throw — continue with other items
         } else {
           downloaded++;
-          await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
+          await recordDownloaded([mediaKey]);
         }
       } else {
         // Direct download (photos, videos with direct URLs)
@@ -195,7 +195,7 @@ async function handlePostDownload(article, btn) {
 
         await completeQueueItem(queueId, filename);
         downloaded++;
-        await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
+        await recordDownloaded([mediaKey]);
       }
 
       if (media.length > 1) await sleep(300);

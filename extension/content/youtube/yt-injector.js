@@ -114,7 +114,7 @@ async function handleYTDownload(btn) {
     // Record in download history
     if (videoId) {
       const mediaKey = buildMediaKey({ source: 'yt', videoId });
-      await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
+      await recordDownloaded([mediaKey]);
     }
 
     btn.classList.add('grabbit-done');

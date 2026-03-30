@@ -432,7 +432,7 @@ async function handleProfileBatchDownload(e) {
         });
         downloaded++;
         // Record in history
-        await chrome.runtime.sendMessage({ action: 'recordDownload', mediaKeys: [mediaKey] });
+        await recordDownloaded([mediaKey]);
       } catch (err) {
         console.warn(`Grabbit: batch download failed for ${item.shortcode}:`, err.message);
       }
