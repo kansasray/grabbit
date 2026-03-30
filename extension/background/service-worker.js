@@ -51,6 +51,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch(() => sendResponse({ success: false }));
     return true;
   }
+
+  if (message.action === 'findExistingDownloads') {
+    findExistingDownloads(message.subfolder)
+      .then(filenames => sendResponse({ success: true, filenames }))
+      .catch(err => sendResponse({ success: false, filenames: [], error: err.message }));
+    return true;
+  }
 });
 
 // ─── chrome.alarms for MV3 service worker lifecycle ────────────
@@ -355,4 +362,23 @@ async function recordDownloadHistory(mediaKeys) {
   }
 
   await chrome.storage.local.set({ [HISTORY_KEY]: history });
+}
+
+// ─── Existing file detection (Chrome download history) ────────
+
+/**
+ * Search Chrome download history for completed files under a subfolder.
+ * Returns base filenames (stripped of uniquify suffixes like " (1)").
+ */
+async function findExistingDownloads(subfolder) {
+  const searchTerm = `${DOWNLOAD_BASE_DIR}/${subfolder}`;
+  const results = await chrome.downloads.search({
+    query: [searchTerm],
+    state: 'complete',
+  });
+  // Extract base filenames, strip Chrome's uniquify suffix " (N)"
+  return results.map(item => {
+    const fullName = item.filename.split('/').pop();
+    return fullName.replace(/ \(\d+\)(?=\.[^.]+$)/, '');
+  });
 }

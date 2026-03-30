@@ -389,8 +389,50 @@ async function handleProfileBatchDownload(e) {
     const mediaKeys = allMedia.map(item =>
       buildMediaKey({ source: 'ig', shortcode: item.shortcode, index: item.index })
     );
-    const alreadyDownloaded = await filterDownloaded(mediaKeys);
-    const newMedia = allMedia.filter((item, i) => !alreadyDownloaded.has(mediaKeys[i]));
+    const alreadyInHistory = await filterDownloaded(mediaKeys);
+
+    // Also check Chrome download history for files downloaded before dedup feature
+    let existingFileBases = new Set();
+    try {
+      const existingResp = await chrome.runtime.sendMessage({
+        action: 'findExistingDownloads',
+        subfolder: `${GRABBIT.DOWNLOAD_SUBFOLDER_IG}/${username}`,
+      });
+      if (existingResp?.filenames) {
+        existingFileBases = new Set(existingResp.filenames);
+      }
+    } catch (e) {
+      console.warn('Grabbit: could not check existing downloads:', e.message);
+    }
+
+    const newMedia = [];
+    const toSeed = []; // media keys to back-fill into history
+    for (let i = 0; i < allMedia.length; i++) {
+      const item = allMedia[i];
+      const key = mediaKeys[i];
+
+      if (alreadyInHistory.has(key)) continue; // already in our history
+
+      const filename = buildIGFilename({
+        username: item.username,
+        timestamp: item.timestamp,
+        shortcode: item.shortcode,
+        index: item.index,
+        type: item.type,
+      });
+
+      if (existingFileBases.has(filename)) {
+        toSeed.push(key); // file exists on disk — seed history
+        continue;
+      }
+
+      newMedia.push(item);
+    }
+
+    // Back-fill history for pre-existing files
+    if (toSeed.length > 0) {
+      await recordDownloaded(toSeed);
+    }
     const skipped = allMedia.length - newMedia.length;
 
     if (newMedia.length === 0) {
