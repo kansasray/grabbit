@@ -9,11 +9,47 @@ Personal Chrome Extension (MV3) + Python backend for downloading Instagram and Y
 - Reel download (via backend yt-dlp)
 - Profile batch download ("Grabbit All" button)
 - Downloads saved to per-username folders
+- Duplicate detection — already downloaded media is automatically skipped
 
 **YouTube**
 - Watch page video download
 - Shorts download
 - Quality selection (configurable in settings)
+
+## Usage
+
+### Instagram — Single Post
+
+1. Browse Instagram feed or open any post
+2. A **download button** (↓) appears in the action bar next to like/comment/share
+3. Click it to download all photos/videos in that post
+4. Carousel posts show a badge with slide count — all slides are downloaded at once
+5. If the post was already downloaded, the button turns **green with a ✓**. You can still click to re-download
+
+### Instagram — Profile Batch Download
+
+1. Visit any public profile page (e.g. `instagram.com/username`)
+2. Click the **"Grabbit All"** button next to Follow/Message
+3. A progress bar shows scanning and downloading progress
+4. Already downloaded files are **automatically skipped** (shows skip count)
+5. Click **Cancel** anytime to stop
+
+### YouTube — Watch Page & Shorts
+
+1. Open any YouTube video or Shorts
+2. A **Download** button appears in the action bar (Watch) or side panel (Shorts)
+3. Click to download via the backend (yt-dlp)
+4. Quality is configurable in extension settings (default: best)
+5. Already downloaded videos show a **✓** indicator
+
+### Duplicate Detection
+
+Grabbit tracks every downloaded file to prevent re-downloading:
+
+- **New downloads**: Recorded automatically after each successful download
+- **Old downloads** (before this feature): Detected via Chrome's download history on the first batch run, then back-filled into Grabbit's records
+- **Batch download**: Duplicates are skipped automatically with a "(N skipped)" counter
+- **Single download**: Button shows green ✓ but still allows re-download on click
 
 ## Project Structure
 
