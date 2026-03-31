@@ -155,6 +155,8 @@ const WATCH_ACTION_SELECTORS = [
   '#actions ytd-menu-renderer',
 ];
 
+let _watchInjecting = false;
+
 /**
  * Try to inject the download button on a Watch page.
  * Returns true if injection succeeded, false if target not found yet.
@@ -162,13 +164,15 @@ const WATCH_ACTION_SELECTORS = [
 async function injectWatchButton() {
   if (!isWatchPage()) return true; // not a watch page, nothing to do
   if (document.querySelector('.grabbit-yt-btn')) return true; // already injected
+  if (_watchInjecting) return false; // another call is in progress
+  _watchInjecting = true;
 
   let actionsRow = null;
   for (const sel of WATCH_ACTION_SELECTORS) {
     actionsRow = document.querySelector(sel);
     if (actionsRow) break;
   }
-  if (!actionsRow) return false; // not ready yet
+  if (!actionsRow) { _watchInjecting = false; return false; } // not ready yet
 
   const btn = document.createElement('button');
   btn.className = 'grabbit-yt-btn';
@@ -194,6 +198,7 @@ async function injectWatchButton() {
   });
 
   actionsRow.appendChild(btn);
+  _watchInjecting = false;
   console.log('Grabbit: injected Watch download button');
   return true;
 }
@@ -259,5 +264,6 @@ async function injectShortsButton() {
 // ─── Cleanup ───────────────────────────────────────────────────
 
 function cleanupYTUI() {
+  _watchInjecting = false;
   document.querySelectorAll('.grabbit-yt-btn, .grabbit-yt-shorts-btn').forEach(el => el.remove());
 }
