@@ -116,3 +116,27 @@ button:hover {
   font-size: 13px;
   margin-left: 8px;
 }
+
+.help-text {
+  font-size: 12px;
+  color: #5a5a5a;
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+.help-text code {
+  background: #f1f3f5;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  color: #d63384;
+}
+
+ol.help-text {
+  padding-left: 20px;
+}
+
+ol.help-text li {
+  margin-bottom: 4px;
+}

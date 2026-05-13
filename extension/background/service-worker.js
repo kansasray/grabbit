@@ -58,7 +58,72 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch(err => sendResponse({ success: false, filenames: [], error: err.message }));
     return true;
   }
+
+  if (message.action === 'recordStart' || message.action === 'recordStop' || message.action === 'recordStatus') {
+    handleRecordingAction(message.action)
+      .then(sendResponse)
+      .catch(err => {
+        console.error(`Grabbit SW recording ${message.action} error:`, err);
+        sendResponse({ success: false, error: err.message });
+      });
+    return true;
+  }
 });
+
+// ─── Recording (OBS) ───────────────────────────────────────────
+
+async function recordingApi(path, method = 'GET') {
+  const settings = await chrome.storage.local.get(['apiBaseUrl', 'apiKey']);
+  if (!settings.apiBaseUrl) throw new Error('Backend not configured');
+  const baseUrl = settings.apiBaseUrl.replace(/\/$/, '');
+  const resp = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: { 'X-API-Key': settings.apiKey || '' },
+  });
+  const body = await resp.text();
+  if (!resp.ok) {
+    let detail = body;
+    try { detail = JSON.parse(body).detail || body; } catch {}
+    throw new Error(`${resp.status}: ${detail}`);
+  }
+  return body ? JSON.parse(body) : {};
+}
+
+async function handleRecordingAction(action) {
+  if (action === 'recordStart') {
+    const data = await recordingApi('/api/record/start', 'POST');
+    await chrome.storage.local.set({
+      recordingState: { active: true, recording_id: data.recording_id, started_at: data.started_at },
+    });
+    return { success: true, ...data };
+  }
+
+  if (action === 'recordStop') {
+    const data = await recordingApi('/api/record/stop', 'POST');
+    await chrome.storage.local.set({ recordingState: { active: false } });
+
+    const settings = await chrome.storage.local.get(['apiBaseUrl', 'apiKey']);
+    const baseUrl = settings.apiBaseUrl.replace(/\/$/, '');
+    const directUrl = `${baseUrl}${data.download_url}?key=${encodeURIComponent(settings.apiKey || '')}`;
+    const downloadPath = `${DOWNLOAD_BASE_DIR}/audio/${data.filename}`;
+    try {
+      await chromeDownload(directUrl, downloadPath);
+    } catch (err) {
+      console.error('Grabbit SW: recording file download failed:', err);
+    }
+    return { success: true, ...data };
+  }
+
+  if (action === 'recordStatus') {
+    const data = await recordingApi('/api/record/status', 'GET');
+    await chrome.storage.local.set({
+      recordingState: data.active
+        ? { active: true, recording_id: data.recording_id, started_at: data.started_at }
+        : { active: false },
+    });
+    return { success: true, ...data };
+  }
+}
 
 // ─── chrome.alarms for MV3 service worker lifecycle ────────────
 

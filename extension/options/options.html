@@ -58,6 +58,28 @@
         </label>
       </fieldset>
 
+      <fieldset>
+        <legend>Audio Capture (Netflix, Apple TV+, DRM content)</legend>
+        <p class="help-text">
+          The popup's <strong>Audio Capture</strong> section records via OBS
+          instead of yt-dlp — works for DRM-protected sites where direct
+          download is impossible. Requires one-time setup:
+        </p>
+        <ol class="help-text">
+          <li>Install <strong>OBS 30+</strong> (32+ recommended)</li>
+          <li>Grant <strong>Screen Recording</strong> permission to OBS in macOS Settings</li>
+          <li>In OBS: Sources <code>+</code> → <strong>macOS Audio Capture</strong> → pick <strong>Google Chrome</strong></li>
+          <li>OBS Tools → <strong>WebSocket Server Settings</strong> → Enable + Generate Password → save password to <code>~/.config/grabbit/obs_password</code></li>
+          <li>Output → Recording → <strong>Custom FFmpeg</strong>, format <code>mp3</code>, file path <code>/tmp/grabbit_recordings/output.mp3</code></li>
+          <li>Restart the backend (launchd will reload start.sh and pick up the password)</li>
+        </ol>
+        <p class="help-text">
+          Recordings are saved to <code>~/Downloads/grabbit/audio/</code>.
+          While recording, don't play other audio inside the same Chrome window —
+          it'll be captured too. Other apps (Spotify, Slack, etc.) are unaffected.
+        </p>
+      </fieldset>
+
       <div class="form-actions">
         <button type="submit" id="save-btn">Save</button>
         <span id="save-status"></span>

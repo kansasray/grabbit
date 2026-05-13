@@ -163,6 +163,111 @@ async function startDownload() {
   }
 }
 
+// ─── Audio Capture (OBS) ─────────────────────────────────────
+
+const recBtn = document.getElementById('record-btn');
+const recDot = document.getElementById('record-status-dot');
+const recLabel = document.getElementById('record-status-label');
+const recTimer = document.getElementById('record-timer');
+const recError = document.getElementById('record-error');
+const recLast = document.getElementById('record-last');
+
+let recTimerInterval = null;
+let recStartedAt = null;
+
+function formatElapsed(secondsFloat) {
+  const s = Math.floor(secondsFloat);
+  const hh = String(Math.floor(s / 3600)).padStart(2, '0');
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
+function setRecUi(active) {
+  if (active) {
+    recDot.className = 'record-dot record-dot-active';
+    recLabel.textContent = 'Recording';
+    recBtn.textContent = '■ Stop';
+    recBtn.classList.add('recording');
+  } else {
+    recDot.className = 'record-dot record-dot-idle';
+    recLabel.textContent = 'Idle';
+    recTimer.textContent = '';
+    recBtn.textContent = '● REC';
+    recBtn.classList.remove('recording');
+  }
+}
+
+function startTimer() {
+  if (recTimerInterval) clearInterval(recTimerInterval);
+  recTimerInterval = setInterval(() => {
+    if (!recStartedAt) return;
+    const elapsed = (Date.now() / 1000) - recStartedAt;
+    recTimer.textContent = formatElapsed(elapsed);
+  }, 500);
+}
+
+function stopTimer() {
+  if (recTimerInterval) {
+    clearInterval(recTimerInterval);
+    recTimerInterval = null;
+  }
+  recStartedAt = null;
+}
+
+async function refreshRecStatus() {
+  try {
+    const resp = await chrome.runtime.sendMessage({ action: 'recordStatus' });
+    if (resp?.success && resp.active) {
+      recStartedAt = resp.started_at;
+      setRecUi(true);
+      startTimer();
+    } else {
+      setRecUi(false);
+      stopTimer();
+    }
+  } catch {
+    setRecUi(false);
+    stopTimer();
+  }
+}
+
+recBtn.addEventListener('click', async () => {
+  recError.style.display = 'none';
+  recLast.style.display = 'none';
+  recBtn.disabled = true;
+
+  const isRecording = recBtn.classList.contains('recording');
+  const action = isRecording ? 'recordStop' : 'recordStart';
+
+  try {
+    const resp = await chrome.runtime.sendMessage({ action });
+    if (!resp?.success) {
+      throw new Error(resp?.error || `${action} failed`);
+    }
+    if (action === 'recordStart') {
+      recStartedAt = resp.started_at;
+      setRecUi(true);
+      startTimer();
+    } else {
+      setRecUi(false);
+      stopTimer();
+      if (resp.filename) {
+        recLast.textContent = `✓ Saved: ${resp.filename} (${(resp.size_bytes / 1024).toFixed(1)} KB, ${resp.duration_s?.toFixed(1)}s)`;
+        recLast.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    recError.textContent = err.message;
+    recError.style.display = 'block';
+  } finally {
+    recBtn.disabled = false;
+  }
+});
+
+refreshRecStatus();
+window.addEventListener('unload', () => stopTimer());
+
 // Options link
 document.getElementById('options-link').addEventListener('click', (e) => {
   e.preventDefault();

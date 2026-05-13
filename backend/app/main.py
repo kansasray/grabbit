@@ -5,18 +5,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import download, files
+from app.routers import download, files, recording
+from app.services.obs_service import ObsService
 from app.services.task_manager import TaskManager
 from app.services.ytdlp_service import YtDlpService
 
 task_manager = TaskManager(ttl_minutes=settings.file_ttl_minutes)
 ytdlp_service = YtDlpService(settings.download_dir, task_manager)
+obs_service = ObsService()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize router singletons
     download.init(task_manager, ytdlp_service)
+    recording.init(obs_service)
 
     # Start periodic cleanup
     cleanup_task = asyncio.create_task(periodic_cleanup())
@@ -41,6 +44,7 @@ app.add_middleware(
 
 app.include_router(download.router)
 app.include_router(files.router)
+app.include_router(recording.router)
 
 
 @app.get("/health")

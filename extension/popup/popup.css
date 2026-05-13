@@ -92,6 +92,89 @@
   color: #e74c3c;
 }
 
+/* Audio Capture (OBS) */
+#record-section {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #efefef;
+}
+
+.record-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8e8e8e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.record-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #b0b0b0;
+}
+
+.record-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.record-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.record-dot-idle { background: #b0b0b0; }
+.record-dot-active {
+  background: #e74c3c;
+  animation: record-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes record-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.record-status-label {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.record-timer {
+  font-size: 12px;
+  font-family: 'SF Mono', Menlo, monospace;
+  color: #e74c3c;
+  flex: 1;
+}
+
+.record-btn {
+  padding: 5px 12px;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.record-btn:hover { background: #c0392b; }
+.record-btn:disabled { background: #f0b8b3; cursor: default; }
+.record-btn.recording { background: #6c757d; }
+.record-btn.recording:hover { background: #5a6268; }
+
+.record-last {
+  font-size: 11px;
+  color: #2ecc71;
+  margin-top: 6px;
+  word-break: break-all;
+}
+
 /* Queue */
 #queue-container {
   max-height: 300px;
