@@ -1,6 +1,9 @@
 #!/bin/zsh
 # Grabbit backend startup script (used by launchd)
 
+# launchd uses a minimal PATH; explicitly include Homebrew so yt-dlp finds ffmpeg
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 export GRABBIT_COOKIES_FILE="/tmp/grabbit_cookies.txt"
 export GRABBIT_API_KEY="${GRABBIT_API_KEY:-change-me-in-production}"
 
